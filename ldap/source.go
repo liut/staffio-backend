@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-ldap/ldap"
 	godebug "github.com/wealthworks/go-debug"
+	"gopkg.in/ldap.v3"
 
 	"github.com/liut/staffio-backend/ldap/pool"
 	"github.com/liut/staffio-backend/schema"

@@ -4,7 +4,7 @@ import (
 	// "fmt"
 	"log"
 
-	"github.com/go-ldap/ldap"
+	"gopkg.in/ldap.v3"
 )
 
 // ModifyBySelf ...

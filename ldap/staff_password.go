@@ -3,7 +3,7 @@ package ldap
 import (
 	"log"
 
-	"github.com/go-ldap/ldap"
+	"gopkg.in/ldap.v3"
 )
 
 // PasswordChange ...

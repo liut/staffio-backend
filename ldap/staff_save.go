@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-ldap/ldap"
+	"gopkg.in/ldap.v3"
 )
 
 func (ls *ldapSource) savePeople(staff *People) (isNew bool, err error) {

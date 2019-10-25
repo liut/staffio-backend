@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/go-ldap/ldap"
+	"gopkg.in/ldap.v3"
 )
 
 // vars

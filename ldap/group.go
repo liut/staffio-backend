@@ -4,7 +4,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/go-ldap/ldap"
+	"gopkg.in/ldap.v3"
 )
 
 const (
