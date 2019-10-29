@@ -48,6 +48,7 @@ type ldapSource struct {
 var (
 	ErrEmptyAddr = errors.New("ldap addr is empty")
 	ErrEmptyBase = errors.New("ldap base is empty")
+	ErrEmptyCN   = errors.New("ldap cn is empty")
 	ErrEmptyDN   = errors.New("ldap dn is empty")
 	ErrEmptyPwd  = errors.New("ldap passwd is empty")
 	ErrLogin     = errors.New("Incorrect Username/Password")
@@ -283,6 +284,9 @@ func (ls *ldapSource) opWithDN(dn, passwd string, op opFunc) error {
 }
 
 func (ls *ldapSource) getGroupEntry(cn string) (*ldap.Entry, error) {
+	if len(cn) == 0 {
+		return nil, ErrEmptyCN
+	}
 	if ls.isAD {
 		if cn == groupAdminDefault {
 			cn = groupAdminAD
