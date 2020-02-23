@@ -360,6 +360,12 @@ func (ls *ldapSource) List(spec *Spec) (data Peoples) {
 		sb.WriteString("))")
 		filter = sb.String()
 		debug("list filter %q", filter)
+	} else if len(spec.Name) > 0 {
+		filter = "(&" + et.Filter + "(cn=" + spec.Name + "))"
+	} else if len(spec.Email) > 0 {
+		filter = "(&" + et.Filter + "(mail=" + spec.Email + "))"
+	} else if len(spec.Mobile) > 0 {
+		filter = "(&" + et.Filter + "(mobile=" + spec.Mobile + "))"
 	}
 	// TODO: other spec
 

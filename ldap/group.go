@@ -112,7 +112,7 @@ func (s *Store) SaveGroup(group *Group) error {
 	for _, ls := range s.sources {
 		err := ls.saveGroup(group)
 		if err != nil {
-			log.Printf("save group %q ERR %s", group.Name, err)
+			log.Printf("save group %v ERR %s", group, err)
 			return err
 		}
 	}
@@ -143,6 +143,10 @@ func (ls *ldapSource) saveGroup(group *Group) error {
 			debug("add group %v", ar)
 			err = c.Add(ar)
 		}
+		if err != nil {
+			log.Printf("saveGroup %v fail: %s", group, err)
+		}
+
 		return err
 	})
 	return err

@@ -20,7 +20,7 @@ func SetNameFormat(s string) {
 // People employment for a person
 type People struct {
 	UID            string `json:"uid" form:"uid" binding:"required"`        // 登录名
-	CommonName     string `json:"cn,omitempty" form:"cn"`                   // 姓名（全名）
+	CommonName     string `json:"cn" form:"cn"`                             // 姓名（全名,多用在中文）
 	GivenName      string `json:"gn" form:"gn" binding:"required"`          // 名 FirstName
 	Surname        string `json:"sn" form:"sn" binding:"required"`          // 姓 LastName
 	Nickname       string `json:"nickname,omitempty" form:"nickname"`       // 昵称
@@ -80,16 +80,23 @@ func (u *People) GetCommonName() string {
 	return formatCN(u.GivenName, u.Surname)
 }
 
-// AvatarURI ...
+// AvatarURI make uri of avatar
 func (u *People) AvatarURI() string {
-
 	if len(u.AvatarPath) > 0 {
 		s := u.AvatarPath
 		if strings.HasSuffix(s, "/") {
 			s = s + "0"
 		}
-		return "https://p.qlogo.cn" + avatarReplacer.Replace(s)
-	} else if len(u.JpegPhoto) > 0 {
+		if strings.HasPrefix(s, "//") || strings.HasPrefix(s, "http") { // full uri
+			return s
+		}
+		if strings.HasPrefix(s, "/bizmail") { // wechat avatar
+			return "https://p.qlogo.cn" + avatarReplacer.Replace(s)
+		}
+		// TODO: show uri
+		return s
+	}
+	if len(u.JpegPhoto) > 0 {
 		return "data:image/jpeg;base64," + base64.StdEncoding.EncodeToString(u.JpegPhoto)
 	}
 	return ""
