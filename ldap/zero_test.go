@@ -12,3 +12,11 @@ func TestSplitDC(t *testing.T) {
 		t.Errorf("mismatch %q and %q", dc1, "example")
 	}
 }
+
+func TestConfig(t *testing.T) {
+	c := zeroConfig
+	ec := NewConfig()
+	c.CopyFrom(*ec)
+
+	t.Logf("test base %s", c.Base)
+}

@@ -10,14 +10,8 @@ import (
 	"github.com/liut/staffio-backend/schema"
 )
 
-const (
-	testBase   = "dc=example,dc=org"
-	testDomain = "example.org"
-	testBind   = "cn=admin,dc=example,dc=org"
-	testPasswd = "mypassword"
-)
-
 var (
+	cfg   *Config
 	store *Store
 )
 
@@ -26,11 +20,13 @@ func TestMain(m *testing.M) {
 
 	var err error
 
-	cfg := NewConfig()
-	cfg.Base = envOr("LDAP_BASE_DN", testBase)
-	cfg.Domain = envOr("LDAP_DOMAIN", testDomain)
-	cfg.Bind = envOr("LDAP_BIND_DN", testBind)
-	cfg.Passwd = envOr("LDAP_PASSWD", testPasswd)
+	cfg = NewConfig()
+	cfg.Base = envOr("TEST_LDAP_BASE", envOr("LDAP_BASE", "dc=example,dc=org"))
+	cfg.Domain = envOr("TEST_LDAP_DOMAIN", envOr("LDAP_DOMAIN", "example.org"))
+	cfg.Bind = envOr("TEST_LDAP_BIND_DN", envOr("LDAP_BIND_DN", "cn=admin,dc=example,dc=org"))
+	cfg.Passwd = envOr("TEST_LDAP_PASSWD", envOr("LDAP_PASSWD", "mypassword"))
+
+	debug("base: %s, bind: %s", cfg.Base, cfg.Bind)
 
 	store, err = NewStore(cfg)
 	if err != nil {
@@ -47,17 +43,17 @@ func TestMain(m *testing.M) {
 func TestStoreFailed(t *testing.T) {
 	var err error
 	var _s *Store
-	_, err = NewStore(Config{})
+	_, err = NewStore(zeroConfig)
 	assert.Error(t, err)
 	assert.EqualError(t, err, ErrEmptyBase.Error())
 
-	_, err = NewStore(Config{Addr: ":bad", Base: testBase})
+	_, err = NewStore(&Config{Addr: ":bad", Base: cfg.Base})
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "parse")
 
-	_s, err = NewStore(Config{
+	_s, err = NewStore(&Config{
 		Addr: "ldaps://localhost",
-		Base: testBase,
+		Base: cfg.Base,
 	})
 	assert.NoError(t, err)
 	// log.Printf("ldap store: %s", _s)
@@ -203,7 +199,7 @@ func TestReady(t *testing.T) {
 	err = ls.Ready(name)
 	assert.NoError(t, err)
 
-	err = ls.Delete(etParent.DN(name, testBase))
+	err = ls.Delete(etParent.DN(name, cfg.Base))
 	assert.NoError(t, err)
 }
 

@@ -12,8 +12,8 @@ type Store struct {
 }
 
 // NewStore ...
-func NewStore(cfg Config) (*Store, error) {
-	if cfg.Base == "" {
+func NewStore(cfg *Config) (*Store, error) {
+	if cfg == nil || cfg.Base == "" {
 		return nil, ErrEmptyBase
 	}
 	store := &Store{
