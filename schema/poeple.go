@@ -90,7 +90,7 @@ func (u *People) AvatarURI() string {
 		if strings.HasPrefix(s, "//") || strings.HasPrefix(s, "http") { // full uri
 			return s
 		}
-		if strings.HasPrefix(s, "/bizmail") { // wechat avatar
+		if strings.HasPrefix(s, "/bizmail") || strings.HasPrefix(s, "/wwhead") { // wechat avatar
 			return "https://p.qlogo.cn" + avatarReplacer.Replace(s)
 		}
 		// TODO: show uri
