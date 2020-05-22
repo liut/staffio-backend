@@ -3,19 +3,17 @@
 DATE := `date '+%Y%m%d'`
 
 WITH_ENV = env `cat .env 2>/dev/null | xargs`
+GO=$(shell which go)
 
 
 all: vet
 
-dep:
-	go install golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
-
 vet:
 	echo "Checking ./..."
-	go vet -vettool=$(which shadow) -atomic -bool -copylocks -nilfunc -printf -rangeloops -unreachable -unsafeptr -unusedresult ./...
+	$(GO) vet -all ./...
 
 
 test-ldap: vet
 	mkdir -p tests
-	@$(WITH_ENV) DEBUG=staffio:ldap go test -v -cover -coverprofile tests/cover_ldap.out ./ldap
-	@go tool cover -html=tests/cover_ldap.out -o tests/cover_ldap.out.html
+	@$(WITH_ENV) DEBUG=staffio:ldap $(GO) test -v -cover -coverprofile tests/cover_ldap.out ./ldap
+	@$(GO) tool cover -html=tests/cover_ldap.out -o tests/cover_ldap.out.html
