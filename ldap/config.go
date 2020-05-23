@@ -83,9 +83,9 @@ func newEentryType(pk, oc string, attrs ...string) (et *entryType) {
 func (et *entryType) DN(name, base string) string {
 	switch et {
 	case etGroup:
-		return DN(et.PK, name, etParent.DN("groups", base))
+		return makeDN(et.PK, name, etParent.DN("groups", base))
 	case etPeople:
-		return DN(et.PK, name, etParent.DN("people", base))
+		return makeDN(et.PK, name, etParent.DN("people", base))
 	case etADgroup:
 		return "CN=" + name + ",CN=Builtin," + base
 	case etADuser:
@@ -94,7 +94,7 @@ func (et *entryType) DN(name, base string) string {
 		return base
 	}
 	// parent
-	return DN(et.PK, name, base)
+	return makeDN(et.PK, name, base)
 }
 
 type attributer interface {
@@ -116,8 +116,12 @@ func (et *entryType) prepareTo(name string, ar attributer) {
 	}
 }
 
-// DN ...
-func DN(pk, name, parent string) string {
+func (et *entryType) oneFilter(value string) string {
+	return "(&(" + et.PK + "=" + value + ")" + et.Filter + ")"
+}
+
+// makeDN ...
+func makeDN(pk, name, parent string) string {
 	return fmt.Sprintf("%s=%s,%s", pk, name, parent)
 }
 
@@ -131,17 +135,17 @@ const (
 )
 
 var (
-	etBase   = newEentryType("dc", "", "dc", "o", "instanceType")
+	etBase   = newEentryType("dc", "", "dc", "o", "instanceType") // dcObject
 	etParent = newEentryType("ou", "organizationalUnit", "ou")
 	etGroup  = newEentryType("cn", "groupOfNames", "cn", "member")
-	etPeople = newEentryType("uid", "inetOrgPerson",
-		"uid", "gn", "sn", "cn", "displayName", "mail", "mobile", "description",
+	etPeople = newEentryType("uid", "inetOrgPerson", "uid",
+		"cn", "gn", "sn", "displayName", "mail", "mobile", "description", "metaJSON",
 		"createdTime", "modifiedTime", "createTimestamp", "modifyTimestamp", "jpegPhoto",
 		"avatarPath", "dateOfBirth", "gender", "employeeNumber", "employeeType", "title")
 
 	etADgroup = newEentryType("cn", "group", "cn", "member", "name", "description", "instanceType")
-	etADuser  = newEentryType("cn", "user", "name", "sAMAccountName", "userPrincipalName",
-		"uid", "gn", "sn", "cn", "displayName", "mail", "mobile", "description",
+	etADuser  = newEentryType("cn", "user", "cn", "name", "sAMAccountName", "userPrincipalName",
+		"uid", "gn", "sn", "displayName", "mail", "mobile", "description",
 		"employeeNumber", "employeeType", "title", "jpegPhoto", "logonCount")
 
 	objectClassPeople = []string{"top", "staffioPerson", "uidObject", "inetOrgPerson"}

@@ -5,8 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/stretchr/testify/assert"
 
+	zlog "github.com/liut/staffio-backend/log"
 	"github.com/liut/staffio-backend/schema"
 )
 
@@ -16,6 +19,11 @@ var (
 )
 
 func TestMain(m *testing.M) {
+	_logger, _ := zap.NewDevelopment()
+	defer _logger.Sync() // flushes buffer, if any
+	sugar := _logger.Sugar()
+	zlog.SetLogger(sugar)
+
 	log.SetFlags(log.Ltime | log.Lshortfile)
 
 	var err error
@@ -26,7 +34,7 @@ func TestMain(m *testing.M) {
 	cfg.Bind = envOr("TEST_LDAP_BIND_DN", envOr("LDAP_BIND_DN", "cn=admin,dc=example,dc=org"))
 	cfg.Passwd = envOr("TEST_LDAP_PASSWD", envOr("LDAP_PASSWD", "mypassword"))
 
-	debug("base: %s, bind: %s", cfg.Base, cfg.Bind)
+	logger().Debugw("start test", "base", cfg.Base, "bind", cfg.Bind)
 
 	store, err = NewStore(cfg)
 	if err != nil {
@@ -117,42 +125,57 @@ func TestPeople(t *testing.T) {
 	assert.False(t, isNew)
 
 	staff, err = store.Get(uid)
-	assert.NoError(t, err)
-	assert.Equal(t, cn, staff.CommonName)
-	assert.Equal(t, sn, staff.Surname)
-
-	var spec = &Spec{
-		UIDs: schema.UIDs{uid},
+	if assert.NoError(t, err) {
+		assert.Equal(t, cn, staff.CommonName)
+		assert.Equal(t, sn, staff.Surname)
 	}
-	data := store.All(spec)
-	assert.NotZero(t, len(data))
+
+	staff2 := schema.NewPeople("cat", "cat", "cat")
+	now := time.Now()
+	staff2.Created = &now
+	_, err = store.Save(staff2)
+	assert.NoError(t, err)
+
+	specs := []*Spec{
+		&Spec{UIDs: schema.UIDs{uid, staff2.UID}},
+		&Spec{UIDs: schema.UIDs{uid}},
+		&Spec{Name: cn},
+		&Spec{Email: staff.Email},
+		&Spec{Mobile: staff.Mobile},
+	}
+
+	for _, spec := range specs {
+		data := store.All(spec)
+		assert.NotZero(t, len(data))
+	}
 
 	err = store.PasswordReset(uid, password)
 	assert.NoError(t, err)
 
 	var _s *People
 	_s, err = store.Authenticate(uid, password)
-	assert.NoError(t, err)
-	assert.NotNil(t, _s)
+	if assert.NoError(t, err) {
+		assert.NotNil(t, _s)
 
-	staff, err = store.GetByDN(_s.DN)
-	assert.NoError(t, err)
-	assert.NotNil(t, staff)
+		staff, err = store.GetByDN(_s.DN)
+		assert.NoError(t, err)
+		assert.NotNil(t, staff)
 
-	staff.CommonName = "doe2"
-	staff.GivenName = "fawn2"
-	staff.Surname = "deer2"
-	staff.AvatarPath = "avatar2.png"
-	staff.Description = "It's me 2"
-	staff.Email = "fawn2@deer.cc"
-	staff.Nickname = "tiny2"
-	staff.Birthday = "20120305"
-	staff.Gender = "f"
-	staff.Mobile = "13012345678"
-	staff.EmployeeNumber = 002
-	staff.EmployeeType = "Chief Engineer"
-	err = store.ModifyBySelf(uid, password, staff)
-	assert.NoError(t, err)
+		staff.CommonName = "doe2"
+		staff.GivenName = "fawn2"
+		staff.Surname = "deer2"
+		staff.AvatarPath = "avatar2.png"
+		staff.Description = "It's me 2"
+		staff.Email = "fawn2@deer.cc"
+		staff.Nickname = "tiny2"
+		staff.Birthday = "20120305"
+		staff.Gender = "f"
+		staff.Mobile = "13012345678"
+		staff.EmployeeNumber = 002
+		staff.EmployeeType = "Chief Engineer"
+		err = store.ModifyBySelf(uid, password, staff)
+		assert.NoError(t, err)
+	}
 
 	err = store.PasswordChange(uid, "bad", "bad new")
 	assert.Error(t, err)
@@ -161,6 +184,21 @@ func TestPeople(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = store.Delete(uid)
+	assert.NoError(t, err)
+}
+
+func TestRename(t *testing.T) {
+	uid := "uid1"
+	staff := schema.NewPeople(uid, "test1")
+	isNew, err := store.Save(staff)
+	assert.NoError(t, err)
+	assert.True(t, isNew)
+
+	newUID := "uid2"
+	err = store.Rename(uid, newUID)
+	assert.NoError(t, err)
+
+	err = store.Delete(newUID)
 	assert.NoError(t, err)
 }
 

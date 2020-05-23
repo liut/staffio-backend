@@ -1,7 +1,6 @@
 package ldap
 
 import (
-	"log"
 	"strconv"
 	"time"
 
@@ -10,12 +9,11 @@ import (
 
 func (ls *ldapSource) savePeople(staff *People) (isNew bool, err error) {
 	err = ls.opWithMan(func(c ldap.Client) (err error) {
-		dn := ls.UDN(staff.UID)
 		var entry *ldap.Entry
-		entry, err = ldapEntryGet(c, ls.UDN(staff.UID), etPeople.Filter, etPeople.Attributes...)
+		entry, err = ldapFindOne(c, ls.Base, etPeople.oneFilter(staff.UID), etPeople.Attributes...)
 		if err == nil {
 			// :update
-			mr := makeModifyRequest(dn, entry, staff)
+			mr := makeModifyRequest(entry, staff)
 			eidStr := strconv.Itoa(staff.EmployeeNumber)
 			if staff.EmployeeNumber > 0 && eidStr != entry.GetAttributeValue("employeeNumber") {
 				mr.Replace("employeeNumber", []string{eidStr})
@@ -25,20 +23,21 @@ func (ls *ldapSource) savePeople(staff *People) (isNew bool, err error) {
 			}
 			err = c.Modify(mr)
 			if err != nil {
-				log.Printf("modify %v ERR %s", mr, err)
+				logger().Infow("modify fail", "mr", mr, "err", err)
 			}
 			return
 		}
 		if err == ErrNotFound {
+			dn := ls.UDN(staff.UID)
 			isNew = true
 			ar := makeAddRequest(dn, staff)
 			err = c.Add(ar)
 			if err != nil {
-				log.Printf("add %v ERR %s", ar, err)
+				logger().Infow("add fail", "isAD", ls.isAD, "dn", dn, "staff", staff, "err", err)
 			}
 			return
 		}
-		log.Printf("savePeople %s ERR %s", staff.UID, err)
+		logger().Infow("savePeople fail", "uid", staff.UID, "err", err)
 
 		return
 	})
@@ -90,6 +89,9 @@ func makeAddRequest(dn string, staff *People) *ldap.AddRequest {
 	if staff.JoinDate != "" {
 		ar.Attribute("dateOfJoin", []string{staff.JoinDate})
 	}
+	if staff.Created != nil {
+		ar.Attribute("createdTime", []string{staff.Created.Format(TimeLayout)})
+	}
 
 	// if staff.Passwd != "" {
 	// 	ar.Attribute("userPassword", []string{staff.Passwd})
@@ -98,8 +100,8 @@ func makeAddRequest(dn string, staff *People) *ldap.AddRequest {
 	return ar
 }
 
-func makeModifyRequest(dn string, entry *ldap.Entry, staff *People) *ldap.ModifyRequest {
-	mr := ldap.NewModifyRequest(dn, nil)
+func makeModifyRequest(entry *ldap.Entry, staff *People) *ldap.ModifyRequest {
+	mr := ldap.NewModifyRequest(entry.DN, nil)
 	mr.Replace("objectClass", objectClassPeople)
 	if staff.Surname != entry.GetAttributeValue("sn") {
 		mr.Replace("sn", []string{staff.Surname})
@@ -131,7 +133,12 @@ func makeModifyRequest(dn string, entry *ldap.Entry, staff *People) *ldap.Modify
 	if len(staff.Description) > 0 && staff.Description != entry.GetAttributeValue("description") {
 		mr.Replace("description", []string{staff.Description})
 	}
-	mr.Replace("modifiedTime", []string{time.Now().Format(TimeLayout)})
+	modified := time.Now()
+	if staff.Modified != nil {
+		modified = *staff.Modified
+	}
+	mr.Replace("modifiedTime", []string{modified.Format(TimeLayout)})
+
 	return mr
 }
 
@@ -147,3 +154,24 @@ employeeNumber
 employeeType
 description
 */
+
+// Rename change uid
+func (ls *ldapSource) Rename(oldUID, newUID string) error {
+	if 0 == len(oldUID) || 0 == len(newUID) {
+		return ErrEmptyUID
+	}
+	return ls.opWithMan(func(c ldap.Client) (err error) {
+		et := ls.etUser()
+		var entry *ldap.Entry
+		entry, err = ldapFindOne(c, ls.Base, et.oneFilter(oldUID), et.Attributes...)
+		if err != nil {
+			return
+		}
+		req := ldap.NewModifyDNRequest(entry.DN, et.PK+"="+newUID, true, "")
+		if err = c.ModifyDN(req); err != nil {
+			logger().Warnw("rename fail", "old", oldUID, "new", newUID, "err", err)
+		}
+
+		return
+	})
+}

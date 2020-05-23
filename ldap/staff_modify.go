@@ -1,9 +1,6 @@
 package ldap
 
 import (
-	// "fmt"
-	"log"
-
 	"github.com/go-ldap/ldap/v3"
 )
 
@@ -12,7 +9,7 @@ func (s *Store) ModifyBySelf(uid, password string, staff *People) (err error) {
 	for _, ls := range s.sources {
 		err = ls.Modify(uid, password, staff)
 		if err != nil {
-			log.Printf("Modify at %s ERR: %s", ls.Addr, err)
+			logger().Infow("Modify by self fail", "uid", uid, "err", err)
 		}
 	}
 	return
@@ -20,21 +17,21 @@ func (s *Store) ModifyBySelf(uid, password string, staff *People) (err error) {
 
 func (ls *ldapSource) Modify(uid, password string, staff *People) error {
 
-	debug("modify self %s staff: %v", uid, staff)
+	logger().Debugw("modify start", "uid", uid, "staff", staff)
 
 	userdn := ls.UDN(uid)
 	return ls.opWithDN(userdn, password, func(c ldap.Client) (err error) {
-		entry, err := ldapEntryGet(c, userdn, etPeople.Filter, etPeople.Attributes...)
+		entry, err := ldapFindOne(c, userdn, etPeople.Filter, etPeople.Attributes...)
 		if err != nil {
 			return err
 		}
 
-		modify := makeModifyRequest(userdn, entry, staff)
+		modify := makeModifyRequest(entry, staff)
 
 		if err = c.Modify(modify); err != nil {
-			log.Printf("Modify ERROR: %s\n", err)
+			logger().Infow("modify fail", "dn", userdn, "err", err)
 		}
-		debug("modified %q, err %v", userdn, err)
+		logger().Debugw("modified ok", "dn", userdn)
 		return nil
 	})
 

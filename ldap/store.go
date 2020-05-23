@@ -1,7 +1,6 @@
 package ldap
 
 import (
-	"log"
 	"strings"
 )
 
@@ -29,7 +28,7 @@ func NewStore(cfg *Config) (*Store, error) {
 		}
 		ls, err := newSource(c)
 		if err != nil {
-			log.Printf("newSource(%s) ERR %s", addr, err)
+			logger().Infow("newSource fail", "addr", addr, "err", err)
 			return nil, err
 		}
 		store.sources = append(store.sources, ls)
@@ -50,11 +49,11 @@ func (s *Store) Authenticate(uid, passwd string) (staff *People, err error) {
 	for _, ls := range s.sources {
 		staff, err = ls.Authenticate(uid, passwd)
 		if err == nil {
-			debug("authenticate(%s,****) ok", uid)
+			logger().Debugw("authenticate ok", "uid", uid)
 			return
 		}
 	}
-	log.Printf("Authen failed for %s, ERR: %s", uid, err)
+	logger().Infow("Authen failed", "uid", uid, "err", err)
 	return
 }
 
@@ -101,7 +100,7 @@ func (s *Store) Save(staff *People) (isNew bool, err error) {
 	for _, ls := range s.sources {
 		isNew, err = ls.savePeople(staff)
 		if err != nil {
-			log.Printf("savePeople at %s ERR: %s", ls.Addr, err)
+			logger().Infow("savePeople fail", "staff", staff, "err", err)
 			return
 		}
 	}
@@ -132,9 +131,21 @@ func (s *Store) PoolStats() *PoolStats {
 	}
 	return &pss
 }
+
 func splitDC(base string) string {
 	pos1 := strings.Index(base, "=")
 	pos2 := strings.Index(base, ",")
 	// TODO:more condition
 	return base[pos1+1 : pos2]
+}
+
+// Rename ...
+func (s *Store) Rename(oldUID, newUID string) (err error) {
+	for _, ls := range s.sources {
+		err = ls.Rename(oldUID, newUID)
+		if err != nil {
+			break
+		}
+	}
+	return
 }

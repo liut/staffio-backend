@@ -25,7 +25,7 @@ type People struct {
 	Surname        string `json:"sn" form:"sn" binding:"required"`          // 姓 LastName
 	Nickname       string `json:"nickname,omitempty" form:"nickname"`       // 昵称
 	Birthday       string `json:"birthday,omitempty" form:"birthday"`       // 生日
-	Gender         string `json:"gender,omitempty" form:"gender"`           // 性别
+	Gender         string `json:"gender,omitempty" form:"gender"`           // 性别: M F U
 	Email          string `json:"email" form:"email" binding:"required"`    // 邮箱
 	Mobile         string `json:"mobile" form:"mobile" binding:"required"`  // 手机
 	Tel            string `json:"tel,omitempty" form:"tel"`                 // 座机
@@ -37,10 +37,13 @@ type People struct {
 	JoinDate       string `json:"joinDate,omitempty" form:"joinDate"`       // 加入日期
 	IDCN           string `json:"idcn,omitempty" form:"idcn"`               // 身份证号
 
+	Organization  string `json:"org,omitempty" form:"org"`   // 所属组织
+	OrgDepartment string `json:"dept,omitempty" form:"dept"` // 所属组织的部门
+
 	Created  *time.Time `json:"created,omitempty" form:"-"`  // 创建时间
 	Modified *time.Time `json:"modified,omitempty" form:"-"` // 修改时间
 
-	DN string `json:"-" form:"-"` // distinguishedName of LDAP entry
+	DN string `json:"dn" form:"-"` // distinguishedName of LDAP entry
 
 }
 
@@ -131,4 +134,33 @@ func (arr Peoples) WithUID(uid string) *People {
 		}
 	}
 	return nil
+}
+
+// NewPeople args: uid, cn, sn, gn, nickname
+func NewPeople(args ...string) *People {
+	argc := len(args)
+	if 0 == argc {
+		panic("empty args")
+	}
+	obj := &People{
+		UID:        args[0],
+		CommonName: args[0],
+		Surname:    args[0][0:1],
+	}
+	if argc > 1 {
+		obj.CommonName = args[1]
+		if argc > 2 {
+			obj.Surname = args[2]
+			if argc > 3 {
+				obj.GivenName = args[3]
+				if argc > 4 {
+					obj.Nickname = args[4]
+				}
+			}
+		} else {
+			obj.Surname = args[1][0:1]
+		}
+	}
+
+	return obj
 }

@@ -1,8 +1,6 @@
 package ldap
 
 import (
-	"log"
-
 	"github.com/go-ldap/ldap/v3"
 )
 
@@ -11,7 +9,6 @@ func (s *Store) PasswordChange(uid, oldPasswd, newPasswd string) (err error) {
 	for _, ls := range s.sources {
 		err = ls.PasswordChange(uid, oldPasswd, newPasswd)
 		if err != nil {
-			log.Printf("PasswordChange at %s ERR: %s", ls.Addr, err)
 			break
 		}
 	}
@@ -26,10 +23,10 @@ func (ls *ldapSource) PasswordChange(uid, oldPasswd, newPasswd string) error {
 		pmr := ldap.NewPasswordModifyRequest(userdn, oldPasswd, newPasswd)
 		_, err := c.PasswordModify(pmr)
 		if err != nil {
-			log.Printf("PasswordModify(%s) ERR: %s", uid, err)
+			logger().Infow("PasswordModify fail", "uid", uid, "err", err)
 			return err
 		}
-		debug("PasswordModify(%s) OK", uid)
+		logger().Infow("PasswordModify OK", "uid", uid)
 	}
 
 	return err
@@ -40,7 +37,6 @@ func (s *Store) PasswordReset(uid, passwd string) (err error) {
 	for _, ls := range s.sources {
 		err = ls.PasswordReset(uid, passwd)
 		if err != nil {
-			log.Printf("PasswordReset at %s ERR: %s", ls.Addr, err)
 			break
 		}
 	}
@@ -54,10 +50,10 @@ func (ls *ldapSource) PasswordReset(uid, newPasswd string) error {
 		passwordModifyRequest := ldap.NewPasswordModifyRequest(dn, "", newPasswd)
 		_, err := c.PasswordModify(passwordModifyRequest)
 		if err != nil {
-			log.Printf("PasswordModify(%s) ERR: %s", uid, err)
+			logger().Infow("PasswordReset fail", "uid", uid, "err", err)
 			return err
 		}
-		debug("PasswordModify(%s) OK", uid)
+		logger().Infow("PasswordModify OK", "uid", uid)
 		return nil
 	})
 }

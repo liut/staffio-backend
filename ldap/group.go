@@ -1,7 +1,6 @@
 package ldap
 
 import (
-	"log"
 	"strings"
 
 	"github.com/go-ldap/ldap/v3"
@@ -37,9 +36,9 @@ func (s *Store) GetGroup(name string) (group *Group, err error) {
 			group = entryToGroup(entry)
 			return
 		}
-		log.Printf("search group %q from %s error: %s", name, ls.Addr, err)
+		logger().Infow("search group fail", "name", name, "addr", ls.Addr, "err", err)
 	}
-	log.Printf("group %s not found", name)
+	logger().Debugw("group not found", "name", name)
 	if err == nil {
 		err = ErrNotFound
 	}
@@ -76,7 +75,7 @@ func (ls *ldapSource) SearchGroup(name string) (data []Group, err error) {
 	})
 
 	if err != nil {
-		log.Printf("LDAP search group error: %s", err)
+		logger().Infow("LDAP search group fail", "name", name, "err", err)
 		return
 	}
 
@@ -112,7 +111,7 @@ func (s *Store) SaveGroup(group *Group) error {
 	for _, ls := range s.sources {
 		err := ls.saveGroup(group)
 		if err != nil {
-			log.Printf("save group %v ERR %s", group, err)
+			logger().Infow("saveGroup fail", "group", group, "err", err)
 			return err
 		}
 	}
@@ -129,22 +128,22 @@ func (ls *ldapSource) saveGroup(group *Group) error {
 		for _, m := range group.Members {
 			members = append(members, ls.UDN(m))
 		}
-		_, err := ldapEntryGet(c, gdn, etGroup.Filter, etGroup.Attributes...)
+		_, err := ldapFindOne(c, gdn, etGroup.Filter, etGroup.Attributes...)
 		if err == nil { // update
 			mr := ldap.NewModifyRequest(gdn, nil)
 			mr.Replace("member", members)
-			debug("change group %v", mr)
+			logger().Debugw("change group", "mr", mr)
 			err = c.Modify(mr)
 		}
 		if err == ErrNotFound { // create
 			ar := ldap.NewAddRequest(gdn, nil)
 			etGroup.prepareTo(group.Name, ar)
 			ar.Attribute("member", members)
-			debug("add group %v", ar)
+			logger().Debugw("add group", "ar", ar)
 			err = c.Add(ar)
 		}
 		if err != nil {
-			log.Printf("saveGroup %v fail: %s", group, err)
+			logger().Infow("saveGroup fail", "group", group, "err", err)
 		}
 
 		return err
@@ -157,7 +156,7 @@ func (s *Store) EraseGroup(name string) error {
 	for _, ls := range s.sources {
 		err := ls.eraseGroup(name)
 		if err != nil {
-			log.Printf("save group %q ERR %s", name, err)
+			logger().Infow("eraseGroup fail", "name", name, "err", err)
 			return err
 		}
 	}
