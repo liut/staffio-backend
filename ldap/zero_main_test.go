@@ -135,6 +135,8 @@ func TestPeople(t *testing.T) {
 	staff2.Created = &now
 	_, err = store.Save(staff2)
 	assert.NoError(t, err)
+	_, err = store.Get("cat")
+	assert.NoError(t, err)
 
 	specs := []*Spec{
 		&Spec{UIDs: schema.UIDs{uid, staff2.UID}},
@@ -194,9 +196,20 @@ func TestRename(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, isNew)
 
+	staff, err = store.Get(uid)
+	assert.NoError(t, err)
+	assert.NotNil(t, staff)
+
+	err = store.Rename(uid, "invalid + uid")
+	assert.Error(t, err)
+
 	newUID := "uid2"
 	err = store.Rename(uid, newUID)
 	assert.NoError(t, err)
+
+	staff, err = store.Get(newUID)
+	assert.NoError(t, err)
+	assert.NotNil(t, staff)
 
 	err = store.Delete(newUID)
 	assert.NoError(t, err)
@@ -204,6 +217,8 @@ func TestRename(t *testing.T) {
 
 func TestGroup(t *testing.T) {
 	var err error
+	_, err = store.GetGroup("")
+	assert.Error(t, err)
 	_, err = store.GetGroup("noexist")
 	assert.Error(t, err)
 

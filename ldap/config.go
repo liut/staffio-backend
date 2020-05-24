@@ -3,6 +3,13 @@ package ldap
 import (
 	"fmt"
 	"os"
+	"regexp"
+
+	"github.com/go-ldap/ldap/v3"
+)
+
+var (
+	reUID = regexp.MustCompile("^[a-z][a-z0-9-_]+$")
 )
 
 /*
@@ -103,7 +110,7 @@ type attributer interface {
 
 func (et *entryType) objectClasses() []string {
 	if et.PK == "dc" {
-		return []string{"dcObject", "organization", "top"}
+		return []string{"domain", "top"}
 	}
 	return []string{et.OC, "top"}
 }
@@ -112,12 +119,12 @@ func (et *entryType) prepareTo(name string, ar attributer) {
 	ar.Attribute("objectClass", et.objectClasses())
 	ar.Attribute(et.PK, []string{name})
 	if et.PK == "dc" {
-		ar.Attribute("o", []string{name})
+		ar.Attribute("l", []string{name})
 	}
 }
 
 func (et *entryType) oneFilter(value string) string {
-	return "(&(" + et.PK + "=" + value + ")" + et.Filter + ")"
+	return "(&(" + et.PK + "=" + ldap.EscapeFilter(value) + ")" + et.Filter + ")"
 }
 
 // makeDN ...
@@ -148,7 +155,7 @@ var (
 		"uid", "gn", "sn", "displayName", "mail", "mobile", "description",
 		"employeeNumber", "employeeType", "title", "jpegPhoto", "logonCount")
 
-	objectClassPeople = []string{"top", "staffioPerson", "uidObject", "inetOrgPerson"}
+	objectClassPeople = []string{"top", "staffioPerson" /*"uidObject",*/, "inetOrgPerson"}
 )
 
 func envOr(key, dft string) string {

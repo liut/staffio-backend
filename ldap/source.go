@@ -51,6 +51,7 @@ var (
 	ErrEmptyFilter = errors.New("ldap filter is empty")
 	ErrEmptyPwd    = errors.New("ldap passwd is empty")
 	ErrEmptyUID    = errors.New("ldap uid is empty")
+	ErrInvalidUID  = errors.New("ldap uid is invalid")
 	ErrLogin       = errors.New("Incorrect Username/Password")
 	ErrNotFound    = errors.New("Not Found")
 	ErrUnsupport   = errors.New("Unsupported")
@@ -303,9 +304,9 @@ func (ls *ldapSource) getGroupEntry(cn string) (*ldap.Entry, error) {
 		if cn == groupAdminDefault {
 			cn = groupAdminAD
 		}
-		return ls.getEntry(etADgroup.DN(cn, ls.Base), etADgroup.Filter, etADgroup.Attributes...)
+		return ls.getEntry(ls.Base, etADgroup.oneFilter(cn), etADgroup.Attributes...)
 	}
-	return ls.getEntry(etGroup.DN(cn, ls.Base), etGroup.Filter, etGroup.Attributes...)
+	return ls.getEntry(ls.Base, etGroup.oneFilter(cn), etGroup.Attributes...)
 }
 
 func (ls *ldapSource) getPeopleEntry(uid string) (*ldap.Entry, error) {
@@ -315,9 +316,6 @@ func (ls *ldapSource) getPeopleEntry(uid string) (*ldap.Entry, error) {
 
 // Entry return a special entry in baseDN and filter
 func (ls *ldapSource) getEntry(baseDN, filter string, attrs ...string) (*ldap.Entry, error) {
-	if 0 == len(filter) {
-		return nil, ErrEmptyFilter
-	}
 	var entry *ldap.Entry
 	err := ls.opWithMan(func(c ldap.Client) (err error) {
 		entry, err = ldapFindOne(c, baseDN, filter, attrs...)
@@ -339,6 +337,9 @@ func (ls *ldapSource) GetPeople(uid string) (staff *People, err error) {
 }
 
 func (ls *ldapSource) GetByDN(dn string) (staff *People, err error) {
+	if _, err = ldap.ParseDN(dn); err != nil {
+		return
+	}
 	et := ls.etUser()
 	var entry *ldap.Entry
 	entry, err = ls.getEntry(dn, et.Filter, et.Attributes...)
@@ -355,23 +356,23 @@ func (ls *ldapSource) List(spec *Spec) (data Peoples) {
 	filter := et.Filter
 	if len(spec.UIDs) > 0 {
 		if 1 == len(spec.UIDs) {
-			filter = "(&(uid=" + spec.UIDs[0] + ")" + et.Filter + ")"
+			filter = "(&(uid=" + ldap.EscapeFilter(spec.UIDs[0]) + ")" + et.Filter + ")"
 		} else {
 			var sb strings.Builder
 			sb.WriteString("(&")
 			sb.WriteString("(|")
 			for _, uid := range spec.UIDs {
-				sb.WriteString("(uid=" + uid + ")")
+				sb.WriteString("(uid=" + ldap.EscapeFilter(uid) + ")")
 			}
 			sb.WriteString(")" + et.Filter + ")")
 			filter = sb.String()
 		}
 	} else if len(spec.Name) > 0 {
-		filter = "(&(cn=" + spec.Name + ")" + et.Filter + ")"
+		filter = "(&(cn=" + ldap.EscapeFilter(spec.Name) + ")" + et.Filter + ")"
 	} else if len(spec.Email) > 0 {
-		filter = "(&(mail=" + spec.Email + ")" + et.Filter + ")"
+		filter = "(&(mail=" + ldap.EscapeFilter(spec.Email) + ")" + et.Filter + ")"
 	} else if len(spec.Mobile) > 0 {
-		filter = "(&(mobile=" + spec.Mobile + ")" + et.Filter + ")"
+		filter = "(&(mobile=" + ldap.EscapeFilter(spec.Mobile) + ")" + et.Filter + ")"
 	}
 	logger().Debugw("list", "filter", filter)
 	// TODO: other spec
@@ -432,10 +433,7 @@ func entryToPeople(entry *ldap.Entry) (u *People) {
 
 	var err error
 	if str := entry.GetAttributeValue("employeeNumber"); str != "" {
-		u.EmployeeNumber, err = strconv.Atoi(str)
-		if err != nil {
-			logger().Infow("invalid employee number", "str", str, "err", err)
-		}
+		u.EmployeeNumber, _ = strconv.Atoi(str)
 	}
 
 	var t time.Time

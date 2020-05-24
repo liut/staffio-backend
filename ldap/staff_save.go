@@ -142,23 +142,13 @@ func makeModifyRequest(entry *ldap.Entry, staff *People) *ldap.ModifyRequest {
 	return mr
 }
 
-/*
-uid
-sn
-givenName
-cn
-mail
-displayName
-mobile
-employeeNumber
-employeeType
-description
-*/
-
 // Rename change uid
 func (ls *ldapSource) Rename(oldUID, newUID string) error {
 	if 0 == len(oldUID) || 0 == len(newUID) {
 		return ErrEmptyUID
+	}
+	if !reUID.MatchString(newUID) {
+		return ErrInvalidUID
 	}
 	return ls.opWithMan(func(c ldap.Client) (err error) {
 		et := ls.etUser()
