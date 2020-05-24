@@ -1,0 +1,41 @@
+dist: bionic
+language: go
+go:
+    - "1.12.x"
+    - "1.13.x"
+    - "1.14.x"
+    - tip
+
+addons:
+  apt:
+    packages:
+    - ldap-utils
+    - slapd
+
+git:
+    depth: 1
+
+matrix:
+    fast_finish: true
+    allow_failures:
+        - go: tip
+
+env:
+  global:
+  - LDAP_HOSTS='localhost:1389'
+  - LDAP_BASE='dc=example,dc=org'
+  - LDAP_DOMAIN='example.org'
+  - LDAP_BIND_DN='cn=admin,dc=example,dc=org'
+  - LDAP_PASSWD='mysecret'
+
+go_import_path: github.com/liut/staffio-backend
+
+before_script:
+  - mkdir /tmp/slapd
+  - cp tests/ldap/schema/staffio.schema /etc/ldap/schema/
+  - slapd -f tests/ldif/data/slapd.conf -h ldap://localhost:1389 &
+  - sleep 3
+  - ldapadd -h localhost:1389 -D cn=admin,dc=example,dc=org -w mysecret -f tests/ldif/data/base.ldif
+
+script:
+  - test -v -cover ./ldap
