@@ -3,8 +3,6 @@ package ldap
 import (
 	"crypto/tls"
 	"errors"
-	"fmt"
-	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -64,51 +62,10 @@ var (
 // newSource Add a new source (LDAP directory) to the global pool
 func newSource(cfg *Config) (*ldapSource, error) {
 
-	logger().Debugw("new source ", "addr", cfg.Addr)
-
-	u, err := url.Parse(cfg.Addr)
-	if err != nil {
-		return nil, fmt.Errorf("parse LDAP addr ERR: %s", err)
-	}
-	// logger().Debugw("parsed ", "host", u.Host, "port", u.Port(), "path", u.Path, "rawPath", u.RawPath)
-
-	if "" == u.Host && "" == u.Path {
-		pos := strings.Index(u.Opaque, "/")
-		if pos > 0 {
-			u.Host = u.Scheme + ":" + u.Opaque[0:pos]
-		} else {
-			u.Host = u.Scheme + ":" + u.Opaque
-		}
-	} else if u.Host == "" && u.Path != "" {
-		u.Host = u.Path
-	} else {
-
-	}
-
-	var useSSL bool
-	if u.Scheme == "ldaps" {
-		useSSL = true
-	}
-
-	if pos := strings.LastIndex(u.Host, ":"); pos == -1 {
-		port := u.Port()
-		if 0 == len(port) {
-			if useSSL {
-				port = "636"
-			} else {
-				port = "389"
-			}
-		}
-		u.Host = u.Host + ":" + port
-	}
-
 	opt := &pool.Options{
 		Factory: func() (ldap.Client, error) {
-			logger().Debugw("dial to ldap", "host", u.Host)
-			if useSSL {
-				return ldap.DialTLS("tcp", u.Host, &tls.Config{InsecureSkipVerify: true})
-			}
-			return ldap.Dial("tcp", u.Host)
+			logger().Debugw("dial to ldap", "addr", cfg.Addr)
+			return ldap.DialURL(cfg.Addr, ldap.DialWithTLSConfig(&tls.Config{InsecureSkipVerify: true}))
 		},
 		PoolSize:           DefaultPoolSize,
 		PoolTimeout:        30 * time.Second,
@@ -118,7 +75,7 @@ func newSource(cfg *Config) (*ldapSource, error) {
 	}
 
 	ls := &ldapSource{
-		Addr:   u.Host,
+		Addr:   cfg.Addr,
 		Base:   cfg.Base,
 		Domain: cfg.Domain,
 		BindDN: cfg.Bind,

@@ -37,7 +37,7 @@ var zeroConfig = &Config{}
 // NewConfig return default Config from Environment
 func NewConfig() *Config {
 	return &Config{
-		Addr:     envOr("LDAP_HOSTS", envOr("STAFFIO_LDAP_HOSTS", "localhost")),
+		Addr:     envOr("LDAP_HOSTS", envOr("STAFFIO_LDAP_HOSTS", "ldap://localhost")),
 		Base:     envOr("LDAP_BASE", envOr("STAFFIO_LDAP_BASE", "dc=mydomain,dc=net")),
 		Domain:   envOr("LDAP_DOMAIN", envOr("STAFFIO_LDAP_DOMAIN", "mydomain.net")),
 		Bind:     envOr("LDAP_BIND_DN", envOr("STAFFIO_LDAP_BIND_DN", "")),

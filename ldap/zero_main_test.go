@@ -29,6 +29,7 @@ func TestMain(m *testing.M) {
 	var err error
 
 	cfg = NewConfig()
+	cfg.Addr = envOr("TEST_LDAP_HOSTS", envOr("LDAP_HOSTS", "ldap://localhost"))
 	cfg.Base = envOr("TEST_LDAP_BASE", envOr("LDAP_BASE", "dc=example,dc=org"))
 	cfg.Domain = envOr("TEST_LDAP_DOMAIN", envOr("LDAP_DOMAIN", "example.org"))
 	cfg.Bind = envOr("TEST_LDAP_BIND_DN", envOr("LDAP_BIND_DN", "cn=admin,dc=example,dc=org"))
@@ -54,10 +55,6 @@ func TestStoreFailed(t *testing.T) {
 	_, err = NewStore(zeroConfig)
 	assert.Error(t, err)
 	assert.EqualError(t, err, ErrEmptyBase.Error())
-
-	_, err = NewStore(&Config{Addr: ":bad", Base: cfg.Base})
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "parse")
 
 	_s, err = NewStore(&Config{
 		Addr: "ldaps://localhost",
