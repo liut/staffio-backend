@@ -1,9 +1,9 @@
 dist: bionic
+sudo: required
 language: go
 go:
     - "1.12.x"
     - "1.13.x"
-    - "1.14.x"
     - tip
 
 addons:
@@ -32,7 +32,7 @@ go_import_path: github.com/liut/staffio-backend
 
 before_script:
   - mkdir /tmp/slapd
-  - cp tests/ldap/schema/staffio.schema /etc/ldap/schema/
+  - sudo cp tests/ldap/schema/staffio.schema /etc/ldap/schema/
   - slapd -f tests/ldif/data/slapd.conf -h ldap://localhost:1389 &
   - sleep 3
   - ldapadd -h localhost:1389 -D cn=admin,dc=example,dc=org -w mysecret -f tests/ldif/data/base.ldif
