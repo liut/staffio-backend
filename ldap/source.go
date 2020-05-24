@@ -70,10 +70,19 @@ func newSource(cfg *Config) (*ldapSource, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parse LDAP addr ERR: %s", err)
 	}
+	// logger().Debugw("parsed ", "host", u.Host, "port", u.Port(), "path", u.Path, "rawPath", u.RawPath)
 
-	if u.Host == "" && u.Path != "" {
+	if "" == u.Host && "" == u.Path {
+		pos := strings.Index(u.Opaque, "/")
+		if pos > 0 {
+			u.Host = u.Scheme + ":" + u.Opaque[0:pos]
+		} else {
+			u.Host = u.Scheme + ":" + u.Opaque
+		}
+	} else if u.Host == "" && u.Path != "" {
 		u.Host = u.Path
-		u.Path = ""
+	} else {
+
 	}
 
 	var useSSL bool
@@ -81,8 +90,7 @@ func newSource(cfg *Config) (*ldapSource, error) {
 		useSSL = true
 	}
 
-	pos := last(u.Host, ':')
-	if pos < 0 {
+	if pos := strings.LastIndex(u.Host, ":"); pos == -1 {
 		port := u.Port()
 		if 0 == len(port) {
 			if useSSL {
@@ -470,15 +478,4 @@ func entryToPeople(entry *ldap.Entry) (u *People) {
 		u.JpegPhoto = blob
 	}
 	return
-}
-
-// Index of rightmost occurrence of b in s.
-func last(s string, b byte) int {
-	i := len(s)
-	for i--; i >= 0; i-- {
-		if s[i] == b {
-			break
-		}
-	}
-	return i
 }
