@@ -6,6 +6,10 @@ go:
     - "1.13.x"
     - tip
 
+cache:
+  directories:
+    - $GOPATH/pkg/mod
+
 addons:
   apt:
     packages:
@@ -22,6 +26,7 @@ matrix:
 
 env:
   global:
+  - GO111MODULE=on
   - LDAP_HOSTS='localhost:1389'
   - LDAP_BASE='dc=example,dc=org'
   - LDAP_DOMAIN='example.org'
@@ -36,6 +41,8 @@ before_script:
   - slapd -f tests/ldap/data/slapd.conf -h ldap://localhost:1389 &
   - sleep 3
   - ldapadd -h localhost:1389 -D cn=admin,dc=example,dc=org -w mysecret -f tests/ldap/data/base.ldif
-
+install:
+  - go mod download
 script:
+  - go get -v ./...
   - go test -v -cover ./ldap
