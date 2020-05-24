@@ -27,7 +27,7 @@ matrix:
 env:
   global:
   - GO111MODULE=on
-  - LDAP_HOSTS='localhost:1389'
+  - LDAP_HOSTS='ldap://localhost:1389'
   - LDAP_BASE='dc=example,dc=org'
   - LDAP_DOMAIN='example.org'
   - LDAP_BIND_DN='cn=admin,dc=example,dc=org'

@@ -2,6 +2,7 @@
 
 Backend data storage of staffio with LDAP
 
+[![Build Status](https://travis-ci.org/liut/staffio-backend.svg?branch=master)](https://travis-ci.org/liut/staffio-backend)
 
 ## Features
 
