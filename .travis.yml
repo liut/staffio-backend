@@ -38,4 +38,4 @@ before_script:
   - ldapadd -h localhost:1389 -D cn=admin,dc=example,dc=org -w mysecret -f tests/ldap/data/base.ldif
 
 script:
-  - test -v -cover ./ldap
+  - go test -v -cover ./ldap
