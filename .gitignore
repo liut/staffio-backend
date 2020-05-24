@@ -59,4 +59,5 @@ Temporary Items
 .env
 *.out
 *.out.html
+coverage.txt
 
