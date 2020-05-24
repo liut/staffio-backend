@@ -44,5 +44,4 @@ before_script:
 install:
   - go mod download
 script:
-  - go get -v ./...
   - go test -v -cover ./ldap

@@ -83,11 +83,15 @@ func newSource(cfg *Config) (*ldapSource, error) {
 
 	pos := last(u.Host, ':')
 	if pos < 0 {
-		if useSSL {
-			u.Host = u.Host + ":636"
-		} else {
-			u.Host = u.Host + ":389"
+		port := u.Port()
+		if 0 == len(port) {
+			if useSSL {
+				port = "636"
+			} else {
+				port = "389"
+			}
 		}
+		u.Host = u.Host + ":" + port
 	}
 
 	opt := &pool.Options{
