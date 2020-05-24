@@ -33,9 +33,9 @@ go_import_path: github.com/liut/staffio-backend
 before_script:
   - mkdir /tmp/slapd
   - sudo cp tests/ldap/schema/staffio.schema /etc/ldap/schema/
-  - slapd -f tests/ldif/data/slapd.conf -h ldap://localhost:1389 &
+  - slapd -f tests/ldap/data/slapd.conf -h ldap://localhost:1389 &
   - sleep 3
-  - ldapadd -h localhost:1389 -D cn=admin,dc=example,dc=org -w mysecret -f tests/ldif/data/base.ldif
+  - ldapadd -h localhost:1389 -D cn=admin,dc=example,dc=org -w mysecret -f tests/ldap/data/base.ldif
 
 script:
   - test -v -cover ./ldap
