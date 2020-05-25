@@ -12,6 +12,12 @@ var (
 	avatarReplacer = strings.NewReplacer("/0", "/60")
 )
 
+// consts
+const (
+	URIPrefixQqcn = "https://p.qlogo.cn"
+	URIPrefixData = "data:image/jpeg;base64,"
+)
+
 // SetNameFormat ...
 func SetNameFormat(s string) {
 	cnFormat = s
@@ -94,13 +100,13 @@ func (u *People) AvatarURI() string {
 			return s
 		}
 		if strings.HasPrefix(s, "/bizmail") || strings.HasPrefix(s, "/wwhead") { // wechat avatar
-			return "https://p.qlogo.cn" + avatarReplacer.Replace(s)
+			return URIPrefixQqcn + avatarReplacer.Replace(s)
 		}
 		// TODO: show uri
 		return s
 	}
 	if len(u.JpegPhoto) > 0 {
-		return "data:image/jpeg;base64," + base64.StdEncoding.EncodeToString(u.JpegPhoto)
+		return URIPrefixData + base64.URLEncoding.EncodeToString(u.JpegPhoto)
 	}
 	return ""
 }

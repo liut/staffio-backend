@@ -1,6 +1,6 @@
 # staffio-backend
 
-Backend data storage of staffio with LDAP
+Data storage of staffio with LDAP
 
 [![Build Status](https://travis-ci.org/liut/staffio-backend.svg?branch=master)](https://travis-ci.org/liut/staffio-backend)
 [![codecov](https://codecov.io/gh/liut/staffio-backend/branch/master/graph/badge.svg)](https://codecov.io/gh/liut/staffio-backend)
@@ -49,15 +49,15 @@ type People struct {
 }
 ```
 
-## Configure with environments
+## Variables in environment
 
 | Name       | Default value        | Note |
 | ------------ | ------------------ | ---- |
-| `LDAP_HOSTS`   | localhost          | May start with `ldap://` or `ldaps://` |
+| `LDAP_HOSTS`   | localhost          | Start with `ldap://` or `ldaps://` |
 | `LDAP_BASE`    | dc=mydomain,dc=net | `AD`/`LDAP` base, required |
 | `LDAP_DOMAIN`  | mydomain.net       | Suffix of <abbr title="userPrincipalName">`UPN`</abbr>, recommend set it |
-| `LDAP_BIND_DN` |                    | Administrator <abbr title="distinguishedName">`DN`</abbr> of LDAP |
-| `LDAP_PASSWD`  |                    | Bind password |
+| `LDAP_BIND_DN` |                    | <abbr title="distinguishedName">`DN`</abbr> of LDAP Admin or other writable user |
+| `LDAP_PASSWD`  |                    | Password of LDAP Admin or other writable user |
 
 
 ## Usage example
