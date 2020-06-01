@@ -8,6 +8,7 @@ go:
 
 cache:
   directories:
+    - $HOME/.cache/go-build
     - $GOPATH/pkg/mod
 
 addons:
