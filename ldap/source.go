@@ -11,23 +11,23 @@ import (
 	"github.com/go-ldap/ldap/v3"
 
 	"github.com/liut/staffio-backend/ldap/pool"
-	"github.com/liut/staffio-backend/schema"
+	"github.com/liut/staffio-backend/model"
 )
 
 // PoolStats ...
 type PoolStats = pool.Stats
 
 // Group ...
-type Group = schema.Group
+type Group = model.Group
 
 // People ...
-type People = schema.People
+type People = model.People
 
 // Peoples ...
-type Peoples = schema.Peoples
+type Peoples = model.Peoples
 
 // Spec ...
-type Spec = schema.Spec
+type Spec = model.Spec
 
 // Basic LDAP authentication service
 type ldapSource struct {

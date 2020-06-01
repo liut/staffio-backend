@@ -1,4 +1,4 @@
-package schema
+package model
 
 // Spec param of searching
 type Spec struct {

@@ -1,4 +1,4 @@
-package schema
+package model
 
 // Group ...
 type Group struct {

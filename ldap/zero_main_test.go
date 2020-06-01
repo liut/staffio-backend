@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	zlog "github.com/liut/staffio-backend/log"
-	"github.com/liut/staffio-backend/schema"
+	"github.com/liut/staffio-backend/model"
 )
 
 var (
@@ -127,7 +127,7 @@ func TestPeople(t *testing.T) {
 		assert.Equal(t, sn, staff.Surname)
 	}
 
-	staff2 := schema.NewPeople("cat", "cat", "cat")
+	staff2 := model.NewPeople("cat", "cat", "cat")
 	now := time.Now()
 	staff2.Created = &now
 	_, err = store.Save(staff2)
@@ -136,8 +136,8 @@ func TestPeople(t *testing.T) {
 	assert.NoError(t, err)
 
 	specs := []*Spec{
-		&Spec{UIDs: schema.UIDs{uid, staff2.UID}},
-		&Spec{UIDs: schema.UIDs{uid}},
+		&Spec{UIDs: model.UIDs{uid, staff2.UID}},
+		&Spec{UIDs: model.UIDs{uid}},
 		&Spec{Name: cn},
 		&Spec{Email: staff.Email},
 		&Spec{Mobile: staff.Mobile},
@@ -188,7 +188,7 @@ func TestPeople(t *testing.T) {
 
 func TestRename(t *testing.T) {
 	uid := "uid1"
-	staff := schema.NewPeople(uid, "test1")
+	staff := model.NewPeople(uid, "test1")
 	isNew, err := store.Save(staff)
 	assert.NoError(t, err)
 	assert.True(t, isNew)
