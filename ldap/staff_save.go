@@ -18,7 +18,7 @@ func (ls *ldapSource) savePeople(staff *People) (isNew bool, err error) {
 			if staff.EmployeeNumber > 0 && eidStr != entry.GetAttributeValue("employeeNumber") {
 				mr.Replace("employeeNumber", []string{eidStr})
 			}
-			if staff.EmployeeType != entry.GetAttributeValue("employeeType") {
+			if len(staff.EmployeeType) > 0 && staff.EmployeeType != entry.GetAttributeValue("employeeType") {
 				mr.Replace("employeeType", []string{staff.EmployeeType})
 			}
 			err = c.Modify(mr)
