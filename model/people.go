@@ -15,6 +15,7 @@ var (
 // consts
 const (
 	URIPrefixQqcn = "https://p.qlogo.cn"
+	URIPrefixWxcn = "https://wework.qpic.cn"
 	URIPrefixData = "data:image/jpeg;base64,"
 )
 
@@ -99,8 +100,11 @@ func (u *People) AvatarURI() string {
 		if strings.HasPrefix(s, "//") || strings.HasPrefix(s, "http") { // full uri
 			return s
 		}
-		if strings.HasPrefix(s, "/bizmail") || strings.HasPrefix(s, "/wwhead") { // wechat avatar
+		if strings.HasPrefix(s, "/bizmail") || strings.HasPrefix(s, "/wwhead") { // qq & wechat avatar
 			return URIPrefixQqcn + avatarReplacer.Replace(s)
+		}
+		if strings.HasPrefix(s, "/wwpic/") { // wechat avatar
+			return URIPrefixWxcn + avatarReplacer.Replace(s)
 		}
 		// TODO: show uri
 		return s
