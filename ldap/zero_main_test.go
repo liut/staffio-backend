@@ -20,7 +20,11 @@ var (
 
 func TestMain(m *testing.M) {
 	_logger, _ := zap.NewDevelopment()
-	defer _logger.Sync() // flushes buffer, if any
+
+	defer func() {
+		_ = _logger.Sync() // flushes buffer, if any
+	}()
+
 	sugar := _logger.Sugar()
 	zlog.SetLogger(sugar)
 

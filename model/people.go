@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// nolint
 var (
 	cnFormat = "<gn> <sn>"
 

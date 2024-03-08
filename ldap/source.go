@@ -40,7 +40,7 @@ type ldapSource struct {
 	isAD   bool
 }
 
-// vars
+// nolint
 var (
 	ErrEmptyAddr   = errors.New("ldap addr is empty")
 	ErrEmptyBase   = errors.New("ldap base is empty")
@@ -209,10 +209,12 @@ func (ls *ldapSource) bind(uid, passwd string) (entry *ldap.Entry, err error) {
 		})
 	}
 	if err == ErrNotFound {
-		err = ls.opWithMan(func(c ldap.Client) (err error) {
-			entry, err = ldapFindOne(c, ls.Base, et.oneFilter(uid), et.Attributes...)
-			err = ls.opWithDN(entry.DN, passwd, nil)
-			return
+		err = ls.opWithMan(func(c ldap.Client) error {
+			entry, err := ldapFindOne(c, ls.Base, et.oneFilter(uid), et.Attributes...)
+			if err != nil {
+				return err
+			}
+			return ls.opWithDN(entry.DN, passwd, nil)
 		})
 	}
 

@@ -13,6 +13,9 @@ vet:
 	echo "Checking ./..."
 	GO111MODULE=$(GOMOD) $(GO) vet -all ./...
 
+lint:
+	GO111MODULE=on golangci-lint run --disable structcheck ./...
+
 
 test-ldap: vet
 	mkdir -p tests
