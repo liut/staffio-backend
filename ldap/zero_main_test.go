@@ -112,7 +112,7 @@ func TestPeople(t *testing.T) {
 		Gender:         "m",
 		Mobile:         "13012341234",
 		JoinDate:       time.Now().Format(DateLayout),
-		EmployeeNumber: 001,
+		EmployeeNumber: "001",
 		EmployeeType:   "Engineer",
 	}
 
@@ -174,7 +174,7 @@ func TestPeople(t *testing.T) {
 		staff.Birthday = "20120305"
 		staff.Gender = "f"
 		staff.Mobile = "13012345678"
-		staff.EmployeeNumber = 002
+		staff.EmployeeNumber = "002"
 		staff.EmployeeType = "Chief Engineer"
 		err = store.ModifyBySelf(uid, password, staff)
 		assert.NoError(t, err)
