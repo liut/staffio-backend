@@ -37,7 +37,7 @@ type People struct {
 	Email          string `json:"email" form:"email" binding:"required"`    // 邮箱
 	Mobile         string `json:"mobile" form:"mobile" binding:"required"`  // 手机
 	Tel            string `json:"tel,omitempty" form:"tel"`                 // 座机
-	EmployeeNumber int    `json:"eid,omitempty" form:"eid"`                 // 员工编号
+	EmployeeNumber string `json:"eid,omitempty" form:"eid"`                 // 员工编号
 	EmployeeType   string `json:"etype,omitempty" form:"etitle"`            // 员工岗位
 	AvatarPath     string `json:"avatarPath,omitempty" form:"avatar"`       // 头像
 	JpegPhoto      []byte `json:"-" form:"-"`                               // jpegPhoto data
@@ -51,7 +51,7 @@ type People struct {
 	Created  *time.Time `json:"created,omitempty" form:"-"`  // 创建时间
 	Modified *time.Time `json:"modified,omitempty" form:"-"` // 修改时间
 
-	DN string `json:"dn" form:"-"` // distinguishedName of LDAP entry
+	DN string `json:"dn,omitempty" form:"-"` // distinguishedName of LDAP entry
 
 }
 

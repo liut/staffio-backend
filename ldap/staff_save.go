@@ -1,7 +1,6 @@
 package ldap
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/go-ldap/ldap/v3"
@@ -14,8 +13,8 @@ func (ls *ldapSource) savePeople(staff *People) (isNew bool, err error) {
 		if err == nil {
 			// :update
 			mr := makeModifyRequest(entry, staff)
-			eidStr := strconv.Itoa(staff.EmployeeNumber)
-			if staff.EmployeeNumber > 0 && eidStr != entry.GetAttributeValue("employeeNumber") {
+			eidStr := staff.EmployeeNumber
+			if len(staff.EmployeeNumber) > 0 && eidStr != entry.GetAttributeValue("employeeNumber") {
 				mr.Replace("employeeNumber", []string{eidStr})
 			}
 			if len(staff.EmployeeType) > 0 && staff.EmployeeType != entry.GetAttributeValue("employeeType") {
@@ -68,8 +67,8 @@ func makeAddRequest(dn string, staff *People) *ldap.AddRequest {
 		ar.Attribute("mobile", []string{staff.Mobile})
 	}
 
-	if staff.EmployeeNumber > 0 {
-		ar.Attribute("employeeNumber", []string{strconv.Itoa(staff.EmployeeNumber)})
+	if staff.EmployeeNumber != "" {
+		ar.Attribute("employeeNumber", []string{staff.EmployeeNumber})
 	}
 	if staff.EmployeeType != "" {
 		ar.Attribute("employeeType", []string{staff.EmployeeType})

@@ -3,7 +3,6 @@ package ldap
 import (
 	"crypto/tls"
 	"errors"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -404,7 +403,7 @@ func entryToPeople(entry *ldap.Entry) (u *People) {
 
 	var err error
 	if str := entry.GetAttributeValue("employeeNumber"); str != "" {
-		u.EmployeeNumber, _ = strconv.Atoi(str)
+		u.EmployeeNumber = str
 	}
 
 	var t time.Time
