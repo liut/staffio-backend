@@ -36,7 +36,7 @@ type People struct {
 	Email          string
 	Mobile         string
 	Tel            string
-	EmployeeNumber int
+	EmployeeNumber string
 	EmployeeType   string
 	AvatarPath     string
 	JpegPhoto      []byte
@@ -49,11 +49,21 @@ type People struct {
 }
 ```
 
+### Group
+
+```go
+type Group struct {
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Members     []string `json:"members"`
+}
+```
+
 ## Variables in environment
 
 | Name       | Default value        | Note |
 | ------------ | ------------------ | ---- |
-| `LDAP_HOSTS`   | localhost          | Start with `ldap://` or `ldaps://` |
+| `LDAP_HOSTS`   | localhost          | LDAP server addresses starting with `ldap://` or `ldaps://`, separated by commas if there are multiple. |
 | `LDAP_BASE`    | dc=mydomain,dc=net | `AD`/`LDAP` base, required |
 | `LDAP_DOMAIN`  | mydomain.net       | Suffix of <abbr title="userPrincipalName">`UPN`</abbr>, recommend set it |
 | `LDAP_BIND_DN` |                    | <abbr title="distinguishedName">`DN`</abbr> of LDAP Admin or other writable user |
